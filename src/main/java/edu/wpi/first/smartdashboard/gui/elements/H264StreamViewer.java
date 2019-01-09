@@ -26,6 +26,7 @@ public class H264StreamViewer extends StaticWidget {
   // boolean to indicate if there's been a camera change since we last looked, used for controlling image thread
   private boolean cameraChanged = true;
   private BufferedImage imageToDraw;
+  private BGThread bgThread = new BGThread();
 
   @Override
   public void init() {
@@ -44,6 +45,12 @@ public class H264StreamViewer extends StaticWidget {
       url = STREAM_PREFIX + urlProperty.getValue();
       cameraChanged();
     }
+  }
+
+  @Override
+  public final void disconnect() {
+    bgThread.interrupt();
+    super.disconnect();
   }
 
   /**
@@ -68,6 +75,11 @@ public class H264StreamViewer extends StaticWidget {
    * Background class to read images from the camera into {@code imageToDraw}.
    */
   public static class BGThread extends Thread {
+
+    public BGThread() {
+      super("Camera Viewer Background");
+    }
+
     @Override
     public void run() {
     }
