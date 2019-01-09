@@ -4,9 +4,14 @@ import edu.wpi.first.smartdashboard.gui.StaticWidget;
 import edu.wpi.first.smartdashboard.properties.IntegerProperty;
 import edu.wpi.first.smartdashboard.properties.Property;
 import edu.wpi.first.smartdashboard.properties.StringProperty;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 
 /**
  * Class to make h.264 stream viewers on the SmartDashboard. Mashes up {@link MjpgStreamViewer} and {@link MjpgStreamViewerImpl}.
@@ -53,6 +58,61 @@ public class H264StreamViewer extends StaticWidget {
     super.disconnect();
   }
 
+  @Override
+  protected final void paintComponent(Graphics g) {
+    BufferedImage drawnImage = imageToDraw;
+
+    if (drawnImage != null) {
+      Graphics2D g2d = (Graphics2D) g;
+
+      // get the existing Graphics transform and copy it so that we can perform scaling and rotation
+      AffineTransform origXform = g2d.getTransform();
+      AffineTransform newXform = (AffineTransform) (origXform.clone());
+
+      // find the center of the original image
+      int origImageWidth = drawnImage.getWidth();
+      int origImageHeight = drawnImage.getHeight();
+      int imageCenterX = origImageWidth / 2;
+      int imageCenterY = origImageHeight / 2;
+
+      // perform the desired scaling
+      double panelWidth = getBounds().width;
+      double panelHeight = getBounds().height;
+      double panelCenterX = panelWidth / 2.0;
+      double panelCenterY = panelHeight / 2.0;
+      double rotatedImageWidth = origImageWidth * Math.abs(Math.cos(rotateAngleRad))
+          + origImageHeight * Math.abs(Math.sin(rotateAngleRad));
+      double rotatedImageHeight = origImageWidth * Math.abs(Math.sin(rotateAngleRad))
+          + origImageHeight * Math.abs(Math.cos(rotateAngleRad));
+
+      // compute scaling needed
+      double scale = Math.min(panelWidth / rotatedImageWidth, panelHeight / rotatedImageHeight);
+
+      // set the transform before drawing the image
+      // 1 - translate the origin to the center of the panel
+      // 2 - perform the desired rotation (rotation will be about origin)
+      // 3 - perform the desired scaling (will scale centered about origin)
+      newXform.translate(panelCenterX, panelCenterY);
+      newXform.rotate(rotateAngleRad);
+      newXform.scale(scale, scale);
+      g2d.setTransform(newXform);
+
+      // draw image so that the center of the image is at the "origin"; the transform will take
+      // care of the rotation and scaling
+      g2d.drawImage(drawnImage, -imageCenterX, -imageCenterY, null);
+
+      // restore the original transform
+      g2d.setTransform(origXform);
+
+      // TODO: FPS and Mbps
+    } else {
+      g.setColor(Color.PINK);
+      g.fillRect(0, 0, getBounds().width, getBounds().height);
+      g.setColor(Color.BLACK);
+      g.drawString("NO CONNECTION", 10, 10);
+    }
+  }
+
   /**
    * Marks the camera (image source) as changed since we last read it for the background thread.
    */
@@ -74,7 +134,9 @@ public class H264StreamViewer extends StaticWidget {
   /**
    * Background class to read images from the camera into {@code imageToDraw}.
    */
-  public static class BGThread extends Thread {
+  public class BGThread extends Thread {
+
+    private InputStream stream;
 
     public BGThread() {
       super("Camera Viewer Background");
@@ -82,6 +144,27 @@ public class H264StreamViewer extends StaticWidget {
 
     @Override
     public void run() {
+      try {
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(getCameraURL());
+        Java2DFrameConverter converter = new Java2DFrameConverter();
+        grabber.start();
+        while (!interrupted()) {
+          Frame frame = grabber.grab();
+          if (frame == null) {
+            break;
+          }
+          if (frame.image != null) {
+            imageToDraw = converter.convert(frame);
+          }
+        }
+      } catch (Exception e) {
+        // TODO: Discover what circumstances cause this
+        e.printStackTrace();
+      }
+    }
+
+    private InputStream getCameraURL() {
+      return null;
     }
   }
 }
