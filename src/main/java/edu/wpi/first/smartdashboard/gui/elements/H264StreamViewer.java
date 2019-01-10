@@ -136,8 +136,6 @@ public class H264StreamViewer extends StaticWidget {
    */
   public class BGThread extends Thread {
 
-    private InputStream stream;
-
     public BGThread() {
       super("Camera Viewer Background");
     }
