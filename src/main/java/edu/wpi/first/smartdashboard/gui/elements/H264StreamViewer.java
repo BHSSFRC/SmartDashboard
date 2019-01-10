@@ -11,7 +11,10 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Class to make h.264 stream viewers on the SmartDashboard. Mashes up {@link MjpgStreamViewer} and {@link MjpgStreamViewerImpl}.
@@ -39,6 +42,7 @@ public class H264StreamViewer extends StaticWidget {
 
     setPreferredSize(new Dimension(160, 120));
     rotateAngleRad = Math.toRadians(rotateProperty.getValue());
+    bgThread.start();
   }
 
   @Override
@@ -165,6 +169,29 @@ public class H264StreamViewer extends StaticWidget {
     }
 
     private InputStream getCameraURL() {
+      String streamUrl = "rtp://localhost:5004/test";
+      while (!interrupted()) {
+        System.out.println("Trying to connect to: " + streamUrl);
+        try {
+          URL url = new URL(streamUrl);
+          URLConnection connection = url.openConnection();
+          connection.setConnectTimeout(500);
+          connection.setReadTimeout(5000);
+          InputStream stream = connection.getInputStream();
+
+          System.out.println("Connected to: " + streamUrl);
+          return stream;
+        } catch (IOException e) {
+          imageToDraw = null;
+          repaint();
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(ex);
+          }
+        }
+      }
       return null;
     }
   }
