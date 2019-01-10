@@ -12,9 +12,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
+
+import static org.bytedeco.javacpp.avcodec.AV_CODEC_ID_MJPEG;
 
 /**
  * Class to make h.264 stream viewers on the SmartDashboard. Mashes up {@link MjpgStreamViewer} and {@link MjpgStreamViewerImpl}.
@@ -52,7 +51,7 @@ public class H264StreamViewer extends StaticWidget {
     }
     if (property == urlProperty) {
       url = STREAM_PREFIX + urlProperty.getValue();
-      cameraChanged();
+      // cameraChanged();
     }
   }
 
@@ -140,59 +139,45 @@ public class H264StreamViewer extends StaticWidget {
    */
   public class BGThread extends Thread {
 
+    private FFmpegFrameGrabber grabber;
+
     public BGThread() {
       super("Camera Viewer Background");
     }
 
     @Override
+    public void interrupt() {
+      try {
+        if (grabber != null) {
+          grabber.close();
+        }
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
+
+      super.interrupt();
+    }
+
+    @Override
     public void run() {
       try {
-        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(getCameraURL());
-        Java2DFrameConverter converter = new Java2DFrameConverter();
+        grabber = new FFmpegFrameGrabber("rtp://localhost:5004/test");
+        grabber.setFormat("h264");
+        grabber.setFrameRate(30.0);
         grabber.start();
-        while (!interrupted() && !isCameraChanged()) {
+        Java2DFrameConverter converter = new Java2DFrameConverter();
+        while (true) {
           Frame frame = grabber.grab();
-          if (frame == null) {
-            // doesn't matter, painting methods handle it
-            imageToDraw = null;
-            repaint();
-            cameraChanged();
-          } else {
-            imageToDraw = converter.convert(frame);
-            repaint();
-          }
+          // doesn't matter, painting methods handle it
+          // System.out.println("Frame is null? " + (frame == null));
+          imageToDraw = frame != null ? converter.convert(frame) : null;
+          repaint();
         }
       } catch (Exception e) {
         // TODO: Discover what circumstances cause this
-        e.printStackTrace();
+        e.printStackTrace(System.out);
       }
-    }
-
-    private InputStream getCameraURL() {
-      String streamUrl = "rtp://localhost:5004/test";
-      while (!interrupted()) {
-        System.out.println("Trying to connect to: " + streamUrl);
-        try {
-          URL url = new URL(streamUrl);
-          URLConnection connection = url.openConnection();
-          connection.setConnectTimeout(500);
-          connection.setReadTimeout(5000);
-          InputStream stream = connection.getInputStream();
-
-          System.out.println("Connected to: " + streamUrl);
-          return stream;
-        } catch (IOException e) {
-          imageToDraw = null;
-          repaint();
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(ex);
-          }
-        }
-      }
-      return null;
+      System.out.println("Exiting thread...");
     }
   }
 }
