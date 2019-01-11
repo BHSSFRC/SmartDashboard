@@ -173,7 +173,7 @@ public class H264StreamViewer extends StaticWidget {
           grabber = new FFmpegFrameGrabber(url);
           grabber.start();
           Java2DFrameConverter converter = new Java2DFrameConverter();
-          while (!isCameraChanged()) {
+          while (!interrupted() && !isCameraChanged()) {
             Frame frame = grabber.grab();
             if (frame != null) {
               fpsCounter++;
