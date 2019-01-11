@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class H264StreamViewer extends StaticWidget {
   // Open to changing this as needed.
-  protected static final String STREAM_PREFIX = "rstp:";
+  protected static final String STREAM_PREFIX = "rstp://";
   private static final int MS_TO_ACCUM_STATS = 1000;
   private static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
   // everything to deal w/image rotation
@@ -57,7 +57,7 @@ public class H264StreamViewer extends StaticWidget {
     }
     if (property == urlProperty) {
       url = STREAM_PREFIX + urlProperty.getValue();
-      // cameraChanged();
+      cameraChanged();
     }
   }
 
@@ -170,7 +170,7 @@ public class H264StreamViewer extends StaticWidget {
     public void run() {
       while (!interrupted()) {
         try {
-          grabber = new FFmpegFrameGrabber("rtsp://localhost:5004/test");
+          grabber = new FFmpegFrameGrabber(url);
           grabber.start();
           Java2DFrameConverter converter = new Java2DFrameConverter();
           while (!isCameraChanged()) {
