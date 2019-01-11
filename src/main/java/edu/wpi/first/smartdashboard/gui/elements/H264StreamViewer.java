@@ -113,7 +113,6 @@ public class H264StreamViewer extends StaticWidget {
       // restore the original transform
       g2d.setTransform(origXform);
 
-      // TODO: FPS and Mbps
       g.setColor(Color.PINK);
       g.drawString("FPS: " + lastFPS, 10, 10);
       g.drawString("Mbps: " + String.format("%.2f", lastMbps), 10, 25);
