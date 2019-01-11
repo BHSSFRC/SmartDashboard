@@ -13,8 +13,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import static org.bytedeco.javacpp.avcodec.AV_CODEC_ID_MJPEG;
-
 /**
  * Class to make h.264 stream viewers on the SmartDashboard. Mashes up {@link MjpgStreamViewer} and {@link MjpgStreamViewerImpl}.
  *
@@ -24,6 +22,8 @@ import static org.bytedeco.javacpp.avcodec.AV_CODEC_ID_MJPEG;
 public class H264StreamViewer extends StaticWidget {
   // Open to changing this as needed.
   protected static final String STREAM_PREFIX = "rstp:";
+  private static final int MS_TO_ACCUM_STATS = 1000;
+  private static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
   // everything to deal w/image rotation
   public final IntegerProperty rotateProperty = new IntegerProperty(this, "Degrees Rotation", 0);
   public double rotateAngleRad = 0;
@@ -32,6 +32,11 @@ public class H264StreamViewer extends StaticWidget {
   private String url = "";
   // boolean to indicate if there's been a camera change since we last looked, used for controlling image thread
   private boolean cameraChanged = true;
+  private long lastFPSCheck = 0;
+  private int lastFPS = 0;
+  private int fpsCounter = 0;
+  private long bpsAccum = 0;
+  private double lastMbps = 0;
   private BufferedImage imageToDraw;
   private BGThread bgThread = new BGThread();
 
@@ -108,6 +113,9 @@ public class H264StreamViewer extends StaticWidget {
       g2d.setTransform(origXform);
 
       // TODO: FPS and Mbps
+      g.setColor(Color.PINK);
+      g.drawString("FPS: " + lastFPS, 10, 10);
+      g.drawString("Mbps: " + String.format("%.2f", lastMbps), 10, 25);
     } else {
       g.setColor(Color.PINK);
       g.fillRect(0, 0, getBounds().width, getBounds().height);
@@ -161,16 +169,26 @@ public class H264StreamViewer extends StaticWidget {
     @Override
     public void run() {
       try {
-        grabber = new FFmpegFrameGrabber("rtp://localhost:5004/test");
-        grabber.setFormat("h264");
-        grabber.setFrameRate(30.0);
+        grabber = new FFmpegFrameGrabber("rtsp://localhost:5004/test");
         grabber.start();
         Java2DFrameConverter converter = new Java2DFrameConverter();
         while (true) {
           Frame frame = grabber.grab();
+          if (frame != null) {
+            fpsCounter++;
+            if (System.currentTimeMillis() - lastFPSCheck > MS_TO_ACCUM_STATS) {
+              lastFPSCheck = System.currentTimeMillis();
+              lastFPS = fpsCounter;
+              // lastMbps = bpsAccum * BPS_TO_MBPS;
+              fpsCounter = 0;
+              bpsAccum = 0;
+            }
+            imageToDraw = converter.convert(frame);
+            repaint();
+            continue;
+          }
           // doesn't matter, painting methods handle it
-          // System.out.println("Frame is null? " + (frame == null));
-          imageToDraw = frame != null ? converter.convert(frame) : null;
+          imageToDraw = null;
           repaint();
         }
       } catch (Exception e) {
