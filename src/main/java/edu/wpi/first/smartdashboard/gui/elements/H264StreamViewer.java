@@ -6,6 +6,7 @@ import edu.wpi.first.smartdashboard.properties.Property;
 import edu.wpi.first.smartdashboard.properties.StringProperty;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
 import java.awt.*;
@@ -168,32 +169,37 @@ public class H264StreamViewer extends StaticWidget {
 
     @Override
     public void run() {
-      try {
-        grabber = new FFmpegFrameGrabber("rtsp://localhost:5004/test");
-        grabber.start();
-        Java2DFrameConverter converter = new Java2DFrameConverter();
-        while (true) {
-          Frame frame = grabber.grab();
-          if (frame != null) {
-            fpsCounter++;
-            if (System.currentTimeMillis() - lastFPSCheck > MS_TO_ACCUM_STATS) {
-              lastFPSCheck = System.currentTimeMillis();
-              lastFPS = fpsCounter;
-              // lastMbps = bpsAccum * BPS_TO_MBPS;
-              fpsCounter = 0;
-              bpsAccum = 0;
+      while (!interrupted()) {
+        try {
+          grabber = new FFmpegFrameGrabber("rtsp://localhost:5004/test");
+          grabber.start();
+          Java2DFrameConverter converter = new Java2DFrameConverter();
+          while (!isCameraChanged()) {
+            Frame frame = grabber.grab();
+            if (frame != null) {
+              fpsCounter++;
+              if (System.currentTimeMillis() - lastFPSCheck > MS_TO_ACCUM_STATS) {
+                lastFPSCheck = System.currentTimeMillis();
+                lastFPS = fpsCounter;
+                // lastMbps = bpsAccum * BPS_TO_MBPS;
+                fpsCounter = 0;
+                bpsAccum = 0;
+              }
+              imageToDraw = converter.convert(frame);
+              repaint();
+              continue;
             }
-            imageToDraw = converter.convert(frame);
+            // doesn't matter, painting methods handle it
+            imageToDraw = null;
             repaint();
-            continue;
           }
-          // doesn't matter, painting methods handle it
-          imageToDraw = null;
-          repaint();
+        } catch (FrameGrabber.Exception e) {
+          // something went wrong probably in connecting
+          cameraChanged();
+        } catch (Exception e) {
+          // TODO: Discover what circumstances cause this
+          e.printStackTrace(System.out);
         }
-      } catch (Exception e) {
-        // TODO: Discover what circumstances cause this
-        e.printStackTrace(System.out);
       }
       System.out.println("Exiting thread...");
     }
