@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class H264StreamViewer extends StaticWidget {
   // Open to changing this as needed.
-  protected static final String STREAM_PREFIX = "rstp://";
+  protected static final String STREAM_PREFIX = "rtsp://";
   private static final int MS_TO_ACCUM_STATS = 1000;
   private static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
   // everything to deal w/image rotation
