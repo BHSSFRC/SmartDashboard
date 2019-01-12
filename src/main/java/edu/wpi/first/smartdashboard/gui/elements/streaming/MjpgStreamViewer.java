@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 public abstract class MjpgStreamViewer extends StreamViewer {
 
-  protected static final String STREAM_PREFIX = "mjpg:";
   private static final int[] START_BYTES = new int[]{0xFF, 0xD8};
   private static final int[] END_BYTES = new int[]{0xFF, 0xD9};
 
@@ -21,6 +20,7 @@ public abstract class MjpgStreamViewer extends StreamViewer {
 
   @Override
   public void onInit() {
+    this.STREAM_PREFIX = "mjpg:";
     bgThread = new BGThread();
   }
 

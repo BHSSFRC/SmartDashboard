@@ -10,6 +10,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public abstract class StreamViewer extends StaticWidget {
+
+  protected String STREAM_PREFIX = "";
   public static final int MS_TO_ACCUM_STATS = 1000;
   public static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
 
@@ -54,7 +56,7 @@ public abstract class StreamViewer extends StaticWidget {
   public final void init() {
     onInit();
 
-    url = urlProperty.getValue();
+    url = STREAM_PREFIX + urlProperty.getValue();
     setPreferredSize(new Dimension(160, 120));
     rotateAngleRad = Math.toRadians(rotateProperty.getValue());
     bgThread.start();
