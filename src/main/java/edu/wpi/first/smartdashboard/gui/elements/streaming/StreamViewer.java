@@ -1,7 +1,6 @@
 package edu.wpi.first.smartdashboard.gui.elements.streaming;
 
 import edu.wpi.first.smartdashboard.gui.StaticWidget;
-import edu.wpi.first.smartdashboard.gui.elements.H264StreamViewer;
 import edu.wpi.first.smartdashboard.properties.IntegerProperty;
 import edu.wpi.first.smartdashboard.properties.Property;
 import edu.wpi.first.smartdashboard.properties.StringProperty;
@@ -157,7 +156,7 @@ public abstract class StreamViewer extends StaticWidget {
      * 3. Set {@link StreamViewer#imageToDraw} to the converted frame.
      * 4. Call {@code repaint()} and continue looping.
      * Additionally, it should make attempts to recover lost connections, and respect calls to {@link BGThread#interrupt()}.
-     * See {@link H264StreamViewer.BGThread#run()} for a decent reference impl.
+     * See {@link FFmpegStreamViewer.BGThread#run()} for a decent reference impl.
      */
     @Override
     public abstract void run();

@@ -8,6 +8,12 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 
 import java.io.IOException;
 
+/**
+ * Class to make FFmpeg-based stream viewers on the SmartDashboard.
+ *
+ * @author Caleb Xavier Berger
+ * @author Alex Von Hoene
+ */
 public class FFmpegStreamViewer extends StreamViewer {
 
   @Override
