@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 
 public abstract class StreamViewer extends StaticWidget {
   public static final int MS_TO_ACCUM_STATS = 1000;
-  private static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
+  public static final double BPS_TO_MBPS = 8.0 / 1024.0 / 1024.0;
 
   public final IntegerProperty rotateProperty = new IntegerProperty(this, "Degrees Rotation", 0);
   private double rotateAngleRad = 0;
@@ -24,7 +24,7 @@ public abstract class StreamViewer extends StaticWidget {
   protected int lastFPS = 0;
   protected int fpsCounter = 0;
   protected long bpsAccum = 0;
-  private double lastMbps = 0;
+  protected double lastMbps = 0;
   protected BufferedImage imageToDraw;
   protected BGThread bgThread;
   private boolean cameraChanged = true;
@@ -44,7 +44,7 @@ public abstract class StreamViewer extends StaticWidget {
   /**
    * Called before the widget paints for the first time. Any code you would place in a regular widget's
    * {@link StaticWidget#init init} method goes here.
-   *
+   * <p>
    * INSTANTIATE your {@link StreamViewer#bgThread} here.
    */
   public abstract void onInit();
@@ -141,7 +141,11 @@ public abstract class StreamViewer extends StaticWidget {
 
   public abstract class BGThread extends Thread {
     public BGThread() {
-      super("Camera Viewer Background");
+      this("Camera Viewer Background");
+    }
+
+    public BGThread(String name) {
+      super(name);
     }
 
     /**
