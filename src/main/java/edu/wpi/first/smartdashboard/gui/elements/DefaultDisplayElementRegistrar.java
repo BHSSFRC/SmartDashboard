@@ -1,6 +1,7 @@
 package edu.wpi.first.smartdashboard.gui.elements;
 
 import edu.wpi.first.smartdashboard.gui.elements.streaming.FFmpegStreamViewer;
+import edu.wpi.first.smartdashboard.gui.elements.streaming.MjpgStreamViewerImpl;
 import edu.wpi.first.smartdashboard.types.DisplayElementRegistry;
 
 /**
