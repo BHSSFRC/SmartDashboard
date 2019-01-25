@@ -46,7 +46,7 @@ public class FFmpegStreamViewer extends StreamViewer {
       while (!interrupted()) {
         try {
           grabber = new FFmpegFrameGrabber(url);
-          grabber.setOption("protocol_whitelist", "file,crypto,rtp,udp");
+          grabber.setOption("fflags", "nobuffer");
           grabber.start();
           Java2DFrameConverter converter = new Java2DFrameConverter();
           while (!interrupted() && !isCameraChanged()) {
