@@ -1,12 +1,14 @@
 package edu.wpi.first.smartdashboard.gui.elements.streaming;
 
 import edu.wpi.first.smartdashboard.properties.Property;
+import edu.wpi.first.smartdashboard.properties.StringProperty;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Class to make FFmpeg-based stream viewers on the SmartDashboard.
@@ -16,6 +18,9 @@ import java.io.IOException;
  */
 public class FFmpegStreamViewer extends StreamViewer {
 
+  public final StringProperty ffplayOptions = new StringProperty(this, "Extra ffplay options", "");
+  private HashMap<String, String> ffplayOpts = new HashMap<>();
+
   @Override
   public void onInit() {
     bgThread = new BGThread();
@@ -23,6 +28,15 @@ public class FFmpegStreamViewer extends StreamViewer {
 
   @Override
   public void onPropertyChanged(Property property) {
+    if (property.equals(ffplayOptions)) {
+      String opts = ffplayOptions.getValue();
+      String[] pairs = opts.split(",");
+      for (String pair : pairs) {
+        String[] kv = pair.split(":");
+        ffplayOpts.put(kv[0], kv[1]);
+      }
+      cameraChanged();
+    }
   }
 
   public class BGThread extends StreamViewer.BGThread {
@@ -47,6 +61,7 @@ public class FFmpegStreamViewer extends StreamViewer {
         try {
           grabber = new FFmpegFrameGrabber(url);
           grabber.setOption("fflags", "nobuffer");
+          grabber.setOptions(ffplayOpts);
           grabber.start();
           Java2DFrameConverter converter = new Java2DFrameConverter();
           while (!interrupted() && !isCameraChanged()) {
