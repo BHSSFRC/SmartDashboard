@@ -2,6 +2,7 @@ package edu.wpi.first.smartdashboard.gui.elements;
 
 import edu.wpi.first.smartdashboard.gui.elements.streaming.FFmpegStreamViewer;
 import edu.wpi.first.smartdashboard.gui.elements.streaming.MjpgStreamViewerImpl;
+import edu.wpi.first.smartdashboard.gui.elements.streaming.MultiStreamViewer;
 import edu.wpi.first.smartdashboard.types.DisplayElementRegistry;
 
 /**
@@ -33,6 +34,7 @@ public class DefaultDisplayElementRegistrar {
     DisplayElementRegistry.registerStaticWidget(MjpgStreamViewerImpl.class);
     DisplayElementRegistry.registerStaticWidget(FFmpegStreamViewer.class);
     DisplayElementRegistry.registerStaticWidget(CameraServerViewer.class);
+    DisplayElementRegistry.registerStaticWidget(MultiStreamViewer.class);
   }
 
 }
