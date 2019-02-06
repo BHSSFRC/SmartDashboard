@@ -1,5 +1,6 @@
 package edu.wpi.first.smartdashboard.gui.elements.streaming;
 
+import edu.wpi.first.smartdashboard.properties.BooleanProperty;
 import edu.wpi.first.smartdashboard.properties.Property;
 import edu.wpi.first.smartdashboard.properties.StringProperty;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -20,6 +21,7 @@ public class FFmpegStreamViewer extends StreamViewer {
 
   public final StringProperty ffplayOptions = new StringProperty(this, "Extra ffplay options", "");
   private HashMap<String, String> ffplayOpts = new HashMap<>();
+  final BooleanProperty ffplayDebug = new BooleanProperty(this, "FFPlay expanded debug", false);
 
   @Override
   public void onInit() {
@@ -61,6 +63,9 @@ public class FFmpegStreamViewer extends StreamViewer {
         try {
           grabber = new FFmpegFrameGrabber(url);
           grabber.setOption("fflags", "nobuffer");
+          if (!ffplayDebug.getValue()) {
+            grabber.setOption("loglevel", "quiet");
+          }
           grabber.setOptions(ffplayOpts);
           grabber.start();
           Java2DFrameConverter converter = new Java2DFrameConverter();
