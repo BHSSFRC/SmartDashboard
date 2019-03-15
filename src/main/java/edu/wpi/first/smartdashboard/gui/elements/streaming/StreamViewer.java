@@ -83,7 +83,7 @@ public abstract class StreamViewer extends StaticWidget {
   }
 
   @Override
-  protected final void paintComponent(Graphics g) {
+  protected void paintComponent(Graphics g) {
     BufferedImage drawnImage = imageToDraw;
 
     if (drawnImage != null) {
