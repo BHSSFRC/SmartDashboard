@@ -20,7 +20,7 @@ import java.util.HashMap;
 public class FFmpegStreamViewer extends StreamViewer {
 
   public final StringProperty ffplayOptions = new StringProperty(this, "Extra ffplay options", "");
-  private HashMap<String, String> ffplayOpts = new HashMap<>();
+  protected HashMap<String, String> ffplayOpts = new HashMap<>();
   final BooleanProperty ffplayDebug = new BooleanProperty(this, "FFPlay expanded debug", false);
 
   @Override
